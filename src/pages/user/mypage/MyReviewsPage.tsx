@@ -1,6 +1,13 @@
+
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import './MyReviewsPage.css';
+import {
+  ArrowLeft,
+  Star,
+  Pencil,
+  Trash2,
+  MessageSquare,
+} from 'lucide-react';
 
 // 리뷰 데이터 타입
 interface Review {
@@ -39,102 +46,163 @@ const initialReviews: Review[] = [
 export default function MyReviewsPage() {
   const navigate = useNavigate();
 
+  // 리뷰 목록 상태
   const [reviews, setReviews] = useState<Review[]>(initialReviews);
 
-  // 리뷰 삭제 (임시 데이터에서만 삭제)
+  // 리뷰 삭제 (현재 화면에서만 반영)
   const handleDelete = (id: number) => {
-    const confirmed = window.confirm('리뷰를 삭제하시겠습니까?');
+    const confirmed = window.confirm(
+      '리뷰를 삭제하시겠습니까?'
+    );
 
     if (confirmed) {
-      setReviews((prev) => prev.filter((review) => review.id !== id));
+      setReviews((prev) =>
+        prev.filter((review) => review.id !== id)
+      );
     }
   };
 
   return (
-    <div className="my-reviews-page">
+    <div className="min-h-screen bg-[#F7F8FA] text-[#222222]">
+
       {/* 상단 헤더 */}
-      <header className="my-reviews-header">
-        <button
-          type="button"
-          className="my-reviews-back"
-          onClick={() => navigate('/mypage')}
-          aria-label="뒤로가기"
-        >
-          <svg
-            width="20"
-            height="20"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth="2.5"
-            strokeLinecap="round"
-            strokeLinejoin="round"
+      <header className="flex h-[52px] items-center border-b border-gray-100 bg-white px-4">
+        <div className="mx-auto flex w-full max-w-[390px] items-center gap-2">
+          <button
+            type="button"
+            onClick={() => navigate('/mypage')}
+            aria-label="뒤로가기"
+            className="flex h-8 w-8 shrink-0 items-center justify-center"
           >
-            <path d="M15 18l-6-6 6-6" />
-          </svg>
-        </button>
-        <h1>내 리뷰</h1>
+            <ArrowLeft size={19} strokeWidth={1.8} />
+          </button>
+
+          <h1 className="text-[15px] font-bold">
+            내 리뷰
+          </h1>
+        </div>
       </header>
 
-      <main className="my-reviews-content">
+      {/* 본문: 최대 너비 360px */}
+      <main className="mx-auto w-full max-w-[390px] px-3 pt-5 pb-10">
+
         {/* 리뷰 개수 */}
-        <div className="my-reviews-summary">
-          <h2>작성한 리뷰</h2>
-          <span>총 {reviews.length}개</span>
+        <div className="mb-3 flex items-center justify-between">
+          <h2 className="text-[13px] font-bold">
+            작성한 리뷰
+          </h2>
+
+          <span className="text-[11px] text-gray-400">
+            총 {reviews.length}개
+          </span>
         </div>
 
         {/* 리뷰 목록 */}
         {reviews.length > 0 ? (
-          <div className="my-reviews-list">
+          <div className="flex flex-col gap-[10px]">
+
             {reviews.map((review) => (
-              <article className="my-review-card" key={review.id}>
-                {/* 식당 이름과 날짜 */}
-                <div className="my-review-top">
-                  <h3>{review.restaurant}</h3>
-                  <span>{review.date}</span>
+              <article
+                key={review.id}
+                className="min-w-0 rounded-xl bg-white p-3"
+              >
+
+                {/* 음식점 이름 및 날짜 */}
+                <div className="flex items-start justify-between gap-2">
+                  <h3 className="min-w-0 flex-1 break-words text-[13px] font-bold">
+                    {review.restaurant}
+                  </h3>
+
+                  <span className="shrink-0 text-[10px] text-gray-400">
+                    {review.date}
+                  </span>
                 </div>
 
                 {/* 별점 */}
-                <div className="my-review-rating">
-                  <span className="my-review-stars">
-                    {'★'.repeat(review.rating)}
-                    {'☆'.repeat(5 - review.rating)}
+                <div className="mt-2 flex items-center gap-2">
+                  <div
+                    className="flex gap-[2px]"
+                    aria-label={`별점 ${review.rating}점`}
+                  >
+                    {[1, 2, 3, 4, 5].map((star) => (
+                      <Star
+                        key={star}
+                        size={14}
+                        strokeWidth={1.5}
+                        className={
+                          star <= review.rating
+                            ? 'fill-[#F5B942] text-[#F5B942]'
+                            : 'fill-none text-gray-300'
+                        }
+                      />
+                    ))}
+                  </div>
+
+                  <span className="text-[11px] font-semibold text-gray-600">
+                    {review.rating}.0
                   </span>
-                  <span>{review.rating}.0</span>
                 </div>
 
                 {/* 리뷰 내용 */}
-                <p className="my-review-text">
+                <p className="mt-3 wrap-break-word text-[11px] leading-[19px] text-gray-600">
                   {review.content}
                 </p>
 
-                {/* 수정 및 삭제 버튼 */}
-                <div className="my-review-actions">
+                {/* 수정 / 삭제 버튼 */}
+                <div className="mt-3 flex justify-end gap-2 border-t border-gray-100 pt-3">
+
                   <button
                     type="button"
-                    className="my-review-edit"
                     onClick={() =>
                       navigate(`/review/${review.id}/edit`)
                     }
+                    className="flex h-[30px] items-center gap-1 rounded-lg bg-[#E8EDF6] px-[10px] text-[10px] font-medium text-[#1B2E52]"
                   >
+                    <Pencil size={12} strokeWidth={1.8} />
                     수정
                   </button>
 
                   <button
                     type="button"
-                    className="my-review-delete"
                     onClick={() => handleDelete(review.id)}
+                    className="flex h-[30px] items-center gap-1 rounded-lg border border-red-100 bg-white px-[10px] text-[10px] font-medium text-red-500"
                   >
+                    <Trash2 size={12} strokeWidth={1.8} />
                     삭제
                   </button>
+
                 </div>
               </article>
             ))}
           </div>
         ) : (
-          <div className="my-reviews-empty">
-            <p>아직 작성한 리뷰가 없어요.</p>
-            <span>맛집에 방문하고 첫 리뷰를 남겨보세요!</span>
+
+          /* 리뷰가 없을 때 */
+          <div className="flex flex-col items-center justify-center py-20 text-center">
+
+            <div className="mb-4 flex h-14 w-14 items-center justify-center rounded-full bg-[#E8EDF6]">
+              <MessageSquare
+                size={26}
+                strokeWidth={1.5}
+                className="text-[#1B2E52]"
+              />
+            </div>
+
+            <p className="text-[13px] font-semibold">
+              아직 작성한 리뷰가 없어요.
+            </p>
+
+            <span className="mt-2 text-[11px] text-gray-400">
+              맛집에 방문하고 첫 리뷰를 남겨보세요!
+            </span>
+
+            <button
+              type="button"
+              onClick={() => navigate('/restaurants')}
+              className="mt-5 h-9 rounded-lg bg-[#1B2E52] px-4 text-[11px] font-semibold text-white"
+            >
+              맛집 둘러보기
+            </button>
           </div>
         )}
       </main>
