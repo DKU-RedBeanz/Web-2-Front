@@ -1,4 +1,3 @@
-
 import { useState, type FormEvent } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import {
@@ -13,29 +12,40 @@ import {
 interface Review {
   id: number;
   restaurant: string;
+  menuName: string;
+  price: string;
   rating: number;
+  recommended: boolean;
   content: string;
 }
 
-// 임시 리뷰 데이터
-// 추후 서버에서 가져온 리뷰 데이터로 교체
+// 임시 리뷰 데이터 (추후 서버에서 가져온 리뷰 데이터로 교체)
 const reviews: Review[] = [
   {
     id: 1,
     restaurant: '정든식당',
+    menuName: '제육볶음 정식',
+    price: '8,500원',
     rating: 5,
+    recommended: true,
     content: '음식도 맛있고 양도 많아요! 다음에 또 방문할 것 같아요.',
   },
   {
     id: 2,
     restaurant: '캠퍼스 파스타',
+    menuName: '토마토 미트 파스타',
+    price: '9,500원',
     rating: 4,
+    recommended: true,
     content: '파스타가 맛있고 분위기도 좋아요. 친구들이랑 오기 좋습니다.',
   },
   {
     id: 3,
     restaurant: '오늘의 덮밥',
+    menuName: '가츠동',
+    price: '8,000원',
     rating: 4,
+    recommended: true,
     content: '가격도 괜찮고 음식이 빨리 나와서 점심 먹기 좋아요.',
   },
 ];
@@ -51,12 +61,16 @@ export default function EditReviewPage() {
 
   // 수정할 입력값
   const [rating, setRating] = useState(originalReview?.rating ?? 0);
+  const [recommended, setRecommended] = useState(
+    originalReview?.recommended ?? true
+  );
   const [content, setContent] = useState(originalReview?.content ?? '');
   const [hoverRating, setHoverRating] = useState(0);
 
   // 리뷰 변경 여부
   const isModified = originalReview
     ? rating !== originalReview.rating ||
+      recommended !== originalReview.recommended ||
       content !== originalReview.content
     : false;
 
@@ -95,11 +109,9 @@ export default function EditReviewPage() {
 
   return (
     <div className="min-h-screen bg-[#F7F8FA] text-[#222222]">
-
       {/* 상단 헤더 */}
       <header className="h-[52px] border-b border-gray-100 bg-white">
         <div className="mx-auto flex h-full w-full max-w-[390px] items-center gap-2 px-4">
-
           <button
             type="button"
             onClick={handleBack}
@@ -109,9 +121,7 @@ export default function EditReviewPage() {
             <ArrowLeft size={20} strokeWidth={1.8} />
           </button>
 
-          <h1 className="flex-1 text-[15px] font-bold">
-            리뷰 수정
-          </h1>
+          <h1 className="flex-1 text-[15px] font-bold">리뷰 수정</h1>
 
           <button
             type="button"
@@ -126,15 +136,10 @@ export default function EditReviewPage() {
 
       {/* 본문 */}
       <main className="mx-auto w-full max-w-[390px] px-4 pt-5 pb-10">
-
         {!originalReview ? (
           /* 존재하지 않는 리뷰 */
           <div className="flex flex-col items-center rounded-xl bg-white px-4 py-16 text-center">
-            <Info
-              size={32}
-              strokeWidth={1.5}
-              className="text-gray-400"
-            />
+            <Info size={32} strokeWidth={1.5} className="text-gray-400" />
 
             <p className="mt-4 text-[14px] font-semibold">
               리뷰를 찾을 수 없습니다.
@@ -150,19 +155,20 @@ export default function EditReviewPage() {
           </div>
         ) : (
           <>
-            {/* 음식점 정보 */}
+            {/* 리뷰 대상 (음식점 및 메뉴 정보) */}
             <section className="mb-3 flex items-center gap-3 rounded-xl bg-white p-4">
-
               <div className="flex h-[52px] w-[52px] shrink-0 items-center justify-center rounded-lg bg-[#E8EDF6] text-[#1B2E52]">
                 <Utensils size={26} strokeWidth={1.7} />
               </div>
 
               <div className="min-w-0">
                 <h2 className="text-[14px] font-bold">
-                  {originalReview.restaurant}
+                  {originalReview.menuName}
                 </h2>
-
-                <p className="mt-1 text-[11px] leading-5 text-gray-400">
+                <p className="mt-0.5 text-xs text-gray-500">
+                  {originalReview.restaurant} · {originalReview.price}
+                </p>
+                <p className="mt-1 text-[11px] leading-4 text-gray-400">
                   방문한 맛집의 리뷰를 수정해주세요.
                 </p>
               </div>
@@ -170,13 +176,9 @@ export default function EditReviewPage() {
 
             {/* 리뷰 수정 폼 */}
             <form onSubmit={handleSave} className="flex flex-col gap-3">
-
               {/* 별점 카드 */}
               <section className="flex flex-col items-center rounded-xl bg-white px-4 py-6">
-
-                <h3 className="text-[14px] font-bold">
-                  별점
-                </h3>
+                <h3 className="text-[14px] font-bold">별점</h3>
 
                 <p className="mt-2 text-xs text-gray-500">
                   음식점은 어떠셨나요?
@@ -218,9 +220,43 @@ export default function EditReviewPage() {
                 </span>
               </section>
 
+              {/* 추천 여부 카드 */}
+              <section className="rounded-xl bg-white p-4">
+                <h3
+                  id="recommend-label"
+                  className="mb-3 text-[13px] font-bold"
+                >
+                  추천 여부
+                </h3>
+
+                <div
+                  role="group"
+                  aria-labelledby="recommend-label"
+                  className="flex gap-2"
+                >
+                  {[
+                    { label: '추천', value: true },
+                    { label: '비추천', value: false },
+                  ].map(({ label, value }) => (
+                    <button
+                      key={label}
+                      type="button"
+                      aria-pressed={recommended === value}
+                      onClick={() => setRecommended(value)}
+                      className={`min-h-9 cursor-pointer rounded-full border px-4 py-1.5 text-xs font-semibold transition-colors ${
+                        recommended === value
+                          ? 'border-[#1B2E52] bg-[#1B2E52] text-white'
+                          : 'border-gray-200 bg-white text-[#222222]'
+                      }`}
+                    >
+                      {label}
+                    </button>
+                  ))}
+                </div>
+              </section>
+
               {/* 리뷰 내용 카드 */}
               <section className="rounded-xl bg-white p-4">
-
                 <label
                   htmlFor="edit-review-text"
                   className="mb-3 block text-[13px] font-bold"
@@ -253,14 +289,13 @@ export default function EditReviewPage() {
                 />
 
                 <p className="text-[11px] leading-5 text-gray-400">
-                  다른 이용자들에게 도움이 될 수 있도록
-                  솔직하고 자세한 리뷰를 작성해주세요.
+                  다른 이용자들에게 도움이 될 수 있도록 솔직하고 자세한 리뷰를
+                  작성해주세요.
                 </p>
               </div>
 
               {/* 취소 및 저장 버튼 */}
               <div className="flex gap-3 pt-1">
-
                 <button
                   type="button"
                   onClick={handleBack}
